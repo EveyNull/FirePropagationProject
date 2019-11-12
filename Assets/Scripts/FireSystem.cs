@@ -2,34 +2,30 @@
 using System.Collections.Generic;
 using UnityEngine;
 
-public class FireWithTemperatureAndFuel : MonoBehaviour
+public class FireSystem : MonoBehaviour
 {
 
     public float igniteTemperature = 50f;
-    public float starterFuel = 500f;
+    public float currentTemperature;
 
-    public float minimumFuelBurn = 5f;
-    public float fuelBurnRate = 10f;
-    public float temperatureGainedPerFuelUnit = 2f;
-
-    public float temperatureLossRate = 1f;
+    public float lifeSpanSeconds = 10f;
+    public float lifeRemaining;
 
     public float maxFireSizeMultiplier = 2;
     public float spreadTemperature = 3f;
-
-    public float currentTemperature;
-    public float currentFuel;
     public bool isAlight = false;
 
     private FireSystemManager fireManager;
 
-    protected Material thisMaterial;
-    protected ParticleSystem[] fireParticleSystems;
-    protected float[] particleStartSize;
-    protected Light fireLight;
+    private Material thisMaterial;
+    private ParticleSystem[] fireParticleSystems;
+    private float[] particleStartSize;
+    private Light fireLight;
+
+    public Vector3 particleDirection;
 
     // Start is called before the first frame update
-    protected virtual void Start()
+    private void Start()
     {
         fireManager = FindObjectOfType<FireSystemManager>();
         fireParticleSystems = GetComponentsInChildren<ParticleSystem>();
@@ -39,16 +35,17 @@ public class FireWithTemperatureAndFuel : MonoBehaviour
             particleStartSize[i] = fireParticleSystems[i].main.startSize.constant;
         }
         fireLight = GetComponentInChildren<Light>();
-
-        currentFuel = starterFuel;
+        AdjustParticleDirection(particleDirection);
+        currentTemperature = 0f;
+        lifeRemaining = lifeSpanSeconds;
     }
 
-    protected virtual void Update()
+    private void Update()
     {
         if(isAlight)
         {
-            SpendFuel();
-            if(currentFuel <= 0f)
+            CountDownLife();
+            if(lifeRemaining <= 0f)
             {
                 Extinguish();
             }
@@ -56,60 +53,49 @@ public class FireWithTemperatureAndFuel : MonoBehaviour
         }
         else
         {
-            if(currentTemperature >= igniteTemperature && currentFuel > 0)
+            if(currentTemperature >= igniteTemperature && lifeRemaining > 0)
             {
                 StartFire();
             }
         }
-
     }
 
-    protected virtual void OnTriggerStay(Collider other)
+    private void OnTriggerStay(Collider other)
     {
         if (isAlight)
         {
             if (fireManager.GetIfFlammable(other.GetComponentInParent<Renderer>().sharedMaterial))
             {
-                if (!other.GetComponentInChildren<FireWithTemperatureAndFuel>())
+                if (!other.GetComponentInChildren<FireSystem>())
                 {
                     fireManager.AddFireSystem(other.gameObject);
                 }
                 else if (!other.GetComponent<MeshCollider>())
                 {
-                    SpreadTemperature(other.GetComponentInChildren<FireWithTemperatureAndFuel>());
+                    SpreadTemperature(other.GetComponentInChildren<FireSystem>());
                 }
             }
         }
     }
 
-    protected virtual void SpendFuel()
+    private void CountDownLife()
     {
-        float fuelBurned = Mathf.Lerp(minimumFuelBurn, fuelBurnRate, currentFuel/starterFuel);
-        if (currentFuel < fuelBurned)
-        {
-            fuelBurned = currentFuel;
-        }
-        currentFuel -= fuelBurned;
-        currentTemperature += fuelBurned * temperatureGainedPerFuelUnit;
+        lifeRemaining -= Time.deltaTime;
     }
 
-    protected virtual void RadiateHeat()
-    {
-        currentTemperature -= temperatureLossRate;
-    }
-
-    public virtual void StartFire()
+    private void StartFire()
     {
         isAlight = true;
         fireLight.enabled = true;
+        gameObject.layer = 9;
         foreach (ParticleSystem ps in fireParticleSystems)
         {
             ps.Play();
         }
-        SpendFuel();
+        CountDownLife();
     }
 
-    protected virtual void Extinguish()
+    private void Extinguish()
     {
         isAlight = false;
         fireLight.enabled = false;
@@ -117,18 +103,31 @@ public class FireWithTemperatureAndFuel : MonoBehaviour
         {
             ps.Stop();
         }
+        fireManager.RemoveFireSystem(this);
     }
 
-    protected virtual void AdjustParticleSize()
+    private void AdjustParticleSize()
     {
         for(int i=0;i<fireParticleSystems.Length;i++)
         {
             var main = fireParticleSystems[i].main;
-            main.startSize = particleStartSize[i] * Mathf.Lerp(0, maxFireSizeMultiplier, 1 - Mathf.Pow((currentFuel / starterFuel - 0.5f) * 2, 2f));
+            main.startSize = particleStartSize[i] * Mathf.Lerp(0, maxFireSizeMultiplier, 1 - Mathf.Pow((lifeRemaining / lifeSpanSeconds - 0.5f) * 2, 2f));
         }
     }
 
-    public virtual void Ignite()
+    public void AdjustParticleDirection(Vector3 newVel)
+    {
+        particleDirection = newVel;
+        for (int i = 0; i < fireParticleSystems.Length; i++)
+        {
+            var vel = fireParticleSystems[i].velocityOverLifetime;
+            vel.x = newVel.x;
+            vel.z = newVel.z;
+        }
+        GetComponent<SphereCollider>().center = newVel/10;
+    }
+
+    public void Ignite()
     {
         currentTemperature = igniteTemperature;
     }
@@ -138,7 +137,7 @@ public class FireWithTemperatureAndFuel : MonoBehaviour
         return isAlight;
     }
 
-    public void SpreadTemperature(FireWithTemperatureAndFuel other)
+    public void SpreadTemperature(FireSystem other)
     {
         other.AddTemperature(spreadTemperature);
     }

@@ -4,15 +4,86 @@ using UnityEngine;
 
 public class FireSystemManager : MonoBehaviour
 {
-    public List<Material> flammables;
+    [System.Serializable]
+    public class FlammableMaterial
+    {
+        public Material material;
+        public float igniteTemperature;
+        public float lifeSpanSeconds;
+        public float maxFireSizeMultiplier;
+        public float spreadTemperature;
+    }
+
+    
+    public List<FlammableMaterial> flammableMats;
+
     public GameObject fireSystemPrefab;
 
     public float meshFireDistanceBetween = 5f;
 
+    private List<FireSystem> fireSystems;
+
+    public Vector3 windDirection;
+
+    private float timer = 0f;
+
+    private void Start()
+    {
+        fireSystems = new List<FireSystem>();
+        foreach (FireSystem fs in FindObjectsOfType<FireSystem>())
+        {
+            fireSystems.Add(fs);
+        }
+
+        windDirection = new Vector3();
+    }
+
+    private void Update()
+    {
+        timer += Time.deltaTime;
+        if(timer >= 60f)
+        {
+            timer = 0f;
+            windDirection = new Vector3(Random.Range(-2, 2), 0f, Random.Range(-2,2));
+            ChangeWindDirection(windDirection);
+        }
+    }
+
+    void ChangeWindDirection(Vector3 newWind)
+    {
+        foreach(FireSystem fs in fireSystems)
+        {
+            fs.AdjustParticleDirection(newWind);
+        }
+    }
+
     public bool GetIfFlammable(Material mat)
     {
-        bool test = flammables.Contains(mat);
-        return flammables.Contains(mat);
+        foreach(FlammableMaterial flammable in flammableMats)
+        {
+            if(flammable.material == mat)
+            {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public void RemoveFireSystem(FireSystem fs)
+    {
+        fireSystems.Remove(fs);
+    }
+
+    public FlammableMaterial GetMaterialProperties(Material mat)
+    {
+        foreach (FlammableMaterial flammable in flammableMats)
+        {
+            if (flammable.material == mat)
+            {
+                return flammable;
+            }
+        }
+        return null;
     }
 
     public void AddFireSystem(GameObject other)
@@ -27,7 +98,21 @@ public class FireSystemManager : MonoBehaviour
             GameObject newFireSystem = Instantiate(fireSystemPrefab);
             newFireSystem.transform.SetParent(other.transform);
             newFireSystem.transform.localPosition = new Vector3(0f, 0f, 0f);
-            newFireSystem.AddComponent<FireWithTemperatureAndFuel>();
+            SetupFireSystem(newFireSystem.GetComponent<FireSystem>(), newFireSystem.GetComponentInParent<Renderer>().sharedMaterial);
+            fireSystems.Add(newFireSystem.GetComponent<FireSystem>());
+        }
+    }
+
+    private void SetupFireSystem(FireSystem fs, Material mat)
+    {
+        FlammableMaterial fm = GetMaterialProperties(mat);
+        if (fm != null)
+        {
+            fs.igniteTemperature = fm.igniteTemperature;
+            fs.lifeSpanSeconds = fm.lifeSpanSeconds;
+            fs.maxFireSizeMultiplier = fm.maxFireSizeMultiplier;
+            fs.spreadTemperature = fm.spreadTemperature;
+            fs.particleDirection = windDirection;
         }
     }
 
@@ -43,10 +128,19 @@ public class FireSystemManager : MonoBehaviour
 
         for(int i = 0; i < numberOfFires; i++)
         {
-            float xTransform = mesh.bounds.min.x + (i % numberFiresRow * meshFireDistanceBetween) + Random.Range(-1, 1f);
-            float zTransform = mesh.bounds.min.z + Mathf.FloorToInt(i / numberFiresRow) * meshFireDistanceBetween + Random.Range(-1, 1f);
+            float xTransform = Mathf.Clamp(
+                mesh.bounds.min.x + (i % numberFiresRow * meshFireDistanceBetween) + Random.Range(-1, 1f)
+                , mesh.bounds.min.x
+                , mesh.bounds.max.x);
+            float zTransform = Mathf.Clamp(
+                mesh.bounds.min.z + Mathf.FloorToInt(i / numberFiresRow) * meshFireDistanceBetween + Random.Range(-1, 1f)
+                , mesh.bounds.min.z
+                , mesh.bounds.max.z);
 
-            Instantiate(fireSystemPrefab, new Vector3(xTransform, 0f, zTransform), fireSystemPrefab.transform.rotation, mesh.transform).GetComponent<SphereCollider>().radius /= mesh.transform.localScale.x*2;
+            GameObject newFireSystem = Instantiate(fireSystemPrefab, new Vector3(xTransform, 0f, zTransform), fireSystemPrefab.transform.rotation, mesh.transform);
+            newFireSystem.GetComponent<SphereCollider>().radius /= mesh.transform.localScale.x * 2;
+            SetupFireSystem(newFireSystem.GetComponent<FireSystem>(), mesh.GetComponentInParent<Renderer>().sharedMaterial);
+            fireSystems.Add(newFireSystem.GetComponent<FireSystem>());
         }
     }
 }
