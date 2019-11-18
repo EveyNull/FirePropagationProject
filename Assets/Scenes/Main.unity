@@ -537,6 +537,85 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   mouseSensitivity: 50
   moveSpeed: 5
+--- !u!1001 &1194468070
+PrefabInstance:
+  m_ObjectHideFlags: 0
+  serializedVersion: 2
+  m_Modification:
+    m_TransformParent: {fileID: 0}
+    m_Modifications:
+    - target: {fileID: 1627606953279024, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_Name
+      value: Projectile
+      objectReference: {fileID: 0}
+    - target: {fileID: 1627606953279024, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_Layer
+      value: 10
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351847110379376, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: -5.19
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351847110379376, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_LocalPosition.y
+      value: 6.15
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351847110379376, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_LocalPosition.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351847110379376, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_LocalRotation.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351847110379376, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_LocalRotation.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351847110379376, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_LocalRotation.z
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351847110379376, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_LocalRotation.w
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351847110379376, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_RootOrder
+      value: 6
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351847110379376, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.x
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351847110379376, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.y
+      value: 0
+      objectReference: {fileID: 0}
+    - target: {fileID: 4351847110379376, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+      propertyPath: m_LocalEulerAnglesHint.z
+      value: 0
+      objectReference: {fileID: 0}
+    m_RemovedComponents: []
+  m_SourcePrefab: {fileID: 100100000, guid: 41d2f8974ce7490498b6f4c8f4acbfac, type: 3}
+--- !u!1 &1194468071 stripped
+GameObject:
+  m_CorrespondingSourceObject: {fileID: 1627606953279024, guid: 41d2f8974ce7490498b6f4c8f4acbfac,
+    type: 3}
+  m_PrefabInstance: {fileID: 1194468070}
+  m_PrefabAsset: {fileID: 0}
+--- !u!114 &1194468072
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1194468071}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: ff7561dca473216409741d127ab645b2, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &1326962973
 GameObject:
   m_ObjectHideFlags: 0
@@ -653,11 +732,14 @@ MonoBehaviour:
     lifeSpanSeconds: 10
     maxFireSizeMultiplier: 2
     spreadTemperature: 0.2
+    ashesPrefab: {fileID: 2468051698393568235, guid: e9571e4978d840b4d9c65f53a42113b5,
+      type: 3}
   - material: {fileID: 2100000, guid: 64b86616ae82d7e44938ce1b8d5b3334, type: 2}
     igniteTemperature: 10
     lifeSpanSeconds: 60
     maxFireSizeMultiplier: 3
     spreadTemperature: 1
+    ashesPrefab: {fileID: 0}
   fireSystemPrefab: {fileID: 150916721474909745, guid: 9291069019339664ea95fbbcef4e3d4a,
     type: 3}
   meshFireDistanceBetween: 1.5
@@ -15399,4 +15481,4 @@ MonoBehaviour:
   maxFireSizeMultiplier: 2
   spreadTemperature: 3
   isAlight: 0
-  particleDirection: {x: 0, y: 0, z: 0}
+  windDirection: {x: 0, y: 0, z: 0}

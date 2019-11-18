@@ -12,6 +12,7 @@ public class FireSystemManager : MonoBehaviour
         public float lifeSpanSeconds;
         public float maxFireSizeMultiplier;
         public float spreadTemperature;
+        public GameObject ashesPrefab;
     }
 
     
@@ -34,8 +35,6 @@ public class FireSystemManager : MonoBehaviour
         {
             fireSystems.Add(fs);
         }
-
-        windDirection = new Vector3();
     }
 
     private void Update()
@@ -112,7 +111,7 @@ public class FireSystemManager : MonoBehaviour
             fs.lifeSpanSeconds = fm.lifeSpanSeconds;
             fs.maxFireSizeMultiplier = fm.maxFireSizeMultiplier;
             fs.spreadTemperature = fm.spreadTemperature;
-            fs.particleDirection = windDirection;
+            fs.windDirection = windDirection;
         }
     }
 
@@ -138,7 +137,7 @@ public class FireSystemManager : MonoBehaviour
                 , mesh.bounds.max.z);
 
             GameObject newFireSystem = Instantiate(fireSystemPrefab, new Vector3(xTransform, 0f, zTransform), fireSystemPrefab.transform.rotation, mesh.transform);
-            newFireSystem.GetComponent<SphereCollider>().radius /= mesh.transform.localScale.x * 2;
+            newFireSystem.GetComponent<SphereCollider>().radius /= mesh.transform.localScale.x;
             SetupFireSystem(newFireSystem.GetComponent<FireSystem>(), mesh.GetComponentInParent<Renderer>().sharedMaterial);
             fireSystems.Add(newFireSystem.GetComponent<FireSystem>());
         }

@@ -22,7 +22,9 @@ public class FireSystem : MonoBehaviour
     private float[] particleStartSize;
     private Light fireLight;
 
-    public Vector3 particleDirection;
+    private Renderer ashesRenderer;
+
+    public Vector3 windDirection;
 
     // Start is called before the first frame update
     private void Start()
@@ -35,9 +37,14 @@ public class FireSystem : MonoBehaviour
             particleStartSize[i] = fireParticleSystems[i].main.startSize.constant;
         }
         fireLight = GetComponentInChildren<Light>();
-        AdjustParticleDirection(particleDirection);
         currentTemperature = 0f;
         lifeRemaining = lifeSpanSeconds;
+        GameObject ashes = fireManager.GetMaterialProperties(GetComponentInParent<Renderer>().sharedMaterial).ashesPrefab;
+        if (ashes != null)
+        {
+            ashesRenderer = Instantiate(ashes, transform.position, transform.rotation, transform).GetComponentInChildren<Renderer>();
+            ashesRenderer.enabled = false;
+        }
     }
 
     private void Update()
@@ -93,6 +100,8 @@ public class FireSystem : MonoBehaviour
             ps.Play();
         }
         CountDownLife();
+        GetComponent<SphereCollider>().radius *= 1.5f;
+        AdjustParticleDirection(windDirection);
     }
 
     private void Extinguish()
@@ -104,6 +113,10 @@ public class FireSystem : MonoBehaviour
             ps.Stop();
         }
         fireManager.RemoveFireSystem(this);
+        if (ashesRenderer != null)
+        {
+            ashesRenderer.enabled = true;
+        }
     }
 
     private void AdjustParticleSize()
@@ -117,7 +130,7 @@ public class FireSystem : MonoBehaviour
 
     public void AdjustParticleDirection(Vector3 newVel)
     {
-        particleDirection = newVel;
+        windDirection = newVel;
         for (int i = 0; i < fireParticleSystems.Length; i++)
         {
             var vel = fireParticleSystems[i].velocityOverLifetime;
