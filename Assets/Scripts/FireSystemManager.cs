@@ -88,9 +88,9 @@ public class FireSystemManager : MonoBehaviour
     public void AddFireSystem(GameObject other)
     {
         
-        if(other.GetComponent<MeshCollider>())
+        if(other.gameObject.layer == LayerMask.NameToLayer("Terrain"))
         {
-            SetupMeshFlammable(other.GetComponent<MeshCollider>());
+            SetupFlammableTerrain(other.GetComponent<MeshCollider>());
         }
         else
         {
@@ -115,7 +115,7 @@ public class FireSystemManager : MonoBehaviour
         }
     }
 
-    void SetupMeshFlammable(MeshCollider mesh)
+    void SetupFlammableTerrain(MeshCollider mesh)
     {
         float xdistance = mesh.bounds.max.x - mesh.bounds.min.x;
         float zdistance = mesh.bounds.max.z - mesh.bounds.min.z;
@@ -136,7 +136,7 @@ public class FireSystemManager : MonoBehaviour
                 , mesh.bounds.min.z
                 , mesh.bounds.max.z);
 
-            GameObject newFireSystem = Instantiate(fireSystemPrefab, new Vector3(xTransform, 0f, zTransform), fireSystemPrefab.transform.rotation, mesh.transform);
+            GameObject newFireSystem = Instantiate(fireSystemPrefab, new Vector3(xTransform, mesh.transform.position.y, zTransform), fireSystemPrefab.transform.rotation, mesh.transform);
             newFireSystem.GetComponent<SphereCollider>().radius /= mesh.transform.localScale.x;
             SetupFireSystem(newFireSystem.GetComponent<FireSystem>(), mesh.GetComponentInParent<Renderer>().sharedMaterial);
             fireSystems.Add(newFireSystem.GetComponent<FireSystem>());
