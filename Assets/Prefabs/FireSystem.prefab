@@ -64,7 +64,7 @@ SphereCollider:
   m_IsTrigger: 1
   m_Enabled: 1
   serializedVersion: 2
-  m_Radius: 1
+  m_Radius: 1.2
   m_Center: {x: 0, y: 0, z: 0}
 --- !u!114 &-1647553067056320601
 MonoBehaviour:
@@ -78,14 +78,14 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c983ab361a23c348a4b8376972fac62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  igniteTemperature: 50
-  currentTemperature: 0
+  igniteTime: 5
+  timeIgnited: 0
   lifeSpanSeconds: 10
   lifeRemaining: 0
   maxFireSizeMultiplier: 2
-  spreadTemperature: 3
   isAlight: 0
-  particleDirection: {x: 0, y: 0, z: 0}
+  windDirection: {x: 0, y: 0, z: 0}
+  breaksOnExtinguish: 0
 --- !u!1 &151285762489370411
 GameObject:
   m_ObjectHideFlags: 0
@@ -686,7 +686,7 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     randomizeRotationDirection: 0
-    maxNumParticles: 50
+    maxNumParticles: 20
     size3D: 0
     rotation3D: 0
     gravityModifier:
@@ -5530,7 +5530,7 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     randomizeRotationDirection: 0
-    maxNumParticles: 50
+    maxNumParticles: 20
     size3D: 0
     rotation3D: 0
     gravityModifier:
@@ -10283,7 +10283,7 @@ ParticleSystem:
         m_PostInfinity: 2
         m_RotationOrder: 4
     randomizeRotationDirection: 0
-    maxNumParticles: 50
+    maxNumParticles: 20
     size3D: 0
     rotation3D: 0
     gravityModifier:

@@ -616,6 +616,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: ff7561dca473216409741d127ab645b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  ignitionRadius: 1
 --- !u!1 &1326962973
 GameObject:
   m_ObjectHideFlags: 0
@@ -726,21 +727,24 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 226569f41a2300c4aada3e0f7397a25f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
+  fireAlightLayer: 9
   flammableMats:
-  - material: {fileID: 2100000, guid: 6aa823570c4b18649b25afc71eba5895, type: 2}
-    igniteTemperature: 40
-    lifeSpanSeconds: 10
+  - fireSettingNoise: 1
+    material: {fileID: 2100000, guid: 6aa823570c4b18649b25afc71eba5895, type: 2}
+    igniteTime: 2
+    lifeSpanSeconds: 3
     maxFireSizeMultiplier: 2
-    spreadTemperature: 0.2
+    breaksOnExtinguish: 0
     ashesPrefab: {fileID: 2468051698393568235, guid: e9571e4978d840b4d9c65f53a42113b5,
       type: 3}
-  - material: {fileID: 2100000, guid: 64b86616ae82d7e44938ce1b8d5b3334, type: 2}
-    igniteTemperature: 10
+  - fireSettingNoise: 0
+    material: {fileID: 2100000, guid: 64b86616ae82d7e44938ce1b8d5b3334, type: 2}
+    igniteTime: 5
     lifeSpanSeconds: 60
     maxFireSizeMultiplier: 3
-    spreadTemperature: 1
+    breaksOnExtinguish: 0
     ashesPrefab: {fileID: 0}
-  fireSystemPrefab: {fileID: 150916721474909745, guid: 9291069019339664ea95fbbcef4e3d4a,
+  fireSystemPrefab: {fileID: 150916721474909745, guid: 0c7dd29aedefdd1469b844f9164c8826,
     type: 3}
   meshFireDistanceBetween: 1.5
   windDirection: {x: 3, y: 0, z: 0}
@@ -15474,11 +15478,11 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 2c983ab361a23c348a4b8376972fac62, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  igniteTemperature: 50
-  currentTemperature: 0
+  igniteTime: 5
+  timeIgnited: 0
   lifeSpanSeconds: 10
   lifeRemaining: 0
   maxFireSizeMultiplier: 2
-  spreadTemperature: 3
   isAlight: 0
   windDirection: {x: 0, y: 0, z: 0}
+  breaksOnExtinguish: 0

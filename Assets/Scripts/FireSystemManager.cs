@@ -7,14 +7,16 @@ public class FireSystemManager : MonoBehaviour
     [System.Serializable]
     public class FlammableMaterial
     {
+        public bool fireSettingNoise;
         public Material material;
-        public float igniteTemperature;
+        public float igniteTime;
         public float lifeSpanSeconds;
         public float maxFireSizeMultiplier;
-        public float spreadTemperature;
+        public bool breaksOnExtinguish;
         public GameObject ashesPrefab;
     }
 
+    public int fireAlightLayer;
     
     public List<FlammableMaterial> flammableMats;
 
@@ -87,18 +89,20 @@ public class FireSystemManager : MonoBehaviour
 
     public void AddFireSystem(GameObject other)
     {
-        
-        if(other.gameObject.layer == LayerMask.NameToLayer("Terrain"))
+        if (GetIfFlammable(other.GetComponentInParent<Renderer>().sharedMaterial))
         {
-            SetupFlammableTerrain(other.GetComponent<MeshCollider>());
-        }
-        else
-        {
-            GameObject newFireSystem = Instantiate(fireSystemPrefab);
-            newFireSystem.transform.SetParent(other.transform);
-            newFireSystem.transform.localPosition = new Vector3(0f, 0f, 0f);
-            SetupFireSystem(newFireSystem.GetComponent<FireSystem>(), newFireSystem.GetComponentInParent<Renderer>().sharedMaterial);
-            fireSystems.Add(newFireSystem.GetComponent<FireSystem>());
+            if (other.GetComponent<MeshCollider>())
+            {
+                SetupFlammableTerrain(other.GetComponent<MeshCollider>());
+            }
+            else
+            {
+                GameObject newFireSystem = Instantiate(fireSystemPrefab);
+                newFireSystem.transform.SetParent(other.transform, false);
+                newFireSystem.transform.localPosition = new Vector3(0f, 0.5f, 0f);
+                SetupFireSystem(newFireSystem.GetComponent<FireSystem>(), newFireSystem.GetComponentInParent<Renderer>().sharedMaterial);
+                fireSystems.Add(newFireSystem.GetComponent<FireSystem>());
+            }
         }
     }
 
@@ -107,11 +111,11 @@ public class FireSystemManager : MonoBehaviour
         FlammableMaterial fm = GetMaterialProperties(mat);
         if (fm != null)
         {
-            fs.igniteTemperature = fm.igniteTemperature;
-            fs.lifeSpanSeconds = fm.lifeSpanSeconds;
-            fs.maxFireSizeMultiplier = fm.maxFireSizeMultiplier;
-            fs.spreadTemperature = fm.spreadTemperature;
+            fs.igniteTime = fm.fireSettingNoise ? fm.igniteTime + Random.Range(-1f, 1f) : fm.igniteTime;
+            fs.lifeSpanSeconds = fm.fireSettingNoise ? fm.lifeSpanSeconds + Random.Range(-1f, 1f) : fm.lifeSpanSeconds;
+            fs.maxFireSizeMultiplier = fm.fireSettingNoise ? fm.maxFireSizeMultiplier + Random.Range(-1f, 1) : fm.maxFireSizeMultiplier;
             fs.windDirection = windDirection;
+            fs.breaksOnExtinguish = fm.breaksOnExtinguish;
         }
     }
 
@@ -135,10 +139,20 @@ public class FireSystemManager : MonoBehaviour
                 mesh.bounds.min.z + Mathf.FloorToInt(i / numberFiresRow) * meshFireDistanceBetween + Random.Range(-1, 1f)
                 , mesh.bounds.min.z
                 , mesh.bounds.max.z);
-
-            GameObject newFireSystem = Instantiate(fireSystemPrefab, new Vector3(xTransform, mesh.transform.position.y, zTransform), fireSystemPrefab.transform.rotation, mesh.transform);
-            newFireSystem.GetComponent<SphereCollider>().radius /= mesh.transform.localScale.x;
+            Ray ray = new Ray(new Vector3(xTransform, mesh.bounds.max.y + 1f, zTransform), Vector3.down);
+            RaycastHit[] hits = Physics.RaycastAll(ray);
+            float yTransform = 0;
+            foreach(RaycastHit hit in hits)
+            {
+                if(hit.collider == mesh)
+                {
+                    yTransform = hit.point.y;
+                }
+            }
+            GameObject newFireSystem = Instantiate(fireSystemPrefab, new Vector3(xTransform, yTransform, zTransform), fireSystemPrefab.transform.rotation, mesh.transform);
             SetupFireSystem(newFireSystem.GetComponent<FireSystem>(), mesh.GetComponentInParent<Renderer>().sharedMaterial);
+            Vector3 worldScale = newFireSystem.transform.lossyScale;
+            newFireSystem.GetComponent<SphereCollider>().radius /= Mathf.Max(worldScale.x, Mathf.Max(worldScale.y, worldScale.z));
             fireSystems.Add(newFireSystem.GetComponent<FireSystem>());
         }
     }

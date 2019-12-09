@@ -4,6 +4,7 @@ using UnityEngine;
 
 public class FireIgniter : MonoBehaviour
 {
+    public float ignitionRadius;
     private FireSystemManager fireManager;
 
     // Start is called before the first frame update
@@ -17,6 +18,14 @@ public class FireIgniter : MonoBehaviour
         if (!collision.collider.GetComponentInChildren<FireSystem>())
         {
             fireManager.AddFireSystem(collision.collider.gameObject);
+        }
+        Collider[] hitColliders = Physics.OverlapSphere(transform.position, ignitionRadius);
+        foreach(Collider hit in hitColliders)
+        {
+            if(hit.GetComponent<FireSystem>())
+            {
+                hit.GetComponent<FireSystem>().Ignite();
+            }
         }
     }
 

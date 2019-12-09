@@ -1,18 +1,20 @@
 ﻿using System.Collections;
 using System.Collections.Generic;
+using System;
 using UnityEngine;
 
 public class FireSystem : MonoBehaviour
 {
 
-    public float igniteTemperature = 50f;
-    public float currentTemperature;
+    public float igniteTime = 5f;
+    public float timeIgnited;
+    private bool beingIgnited;
 
     public float lifeSpanSeconds = 10f;
     public float lifeRemaining;
 
     public float maxFireSizeMultiplier = 2;
-    public float spreadTemperature = 3f;
+
     public bool isAlight = false;
 
     private FireSystemManager fireManager;
@@ -26,6 +28,12 @@ public class FireSystem : MonoBehaviour
 
     public Vector3 windDirection;
 
+    public bool breaksOnExtinguish;
+
+    private bool igniteAtFrameEnd = false;
+
+    private float startFireRadius;
+
     // Start is called before the first frame update
     private void Start()
     {
@@ -37,14 +45,23 @@ public class FireSystem : MonoBehaviour
             particleStartSize[i] = fireParticleSystems[i].main.startSize.constant;
         }
         fireLight = GetComponentInChildren<Light>();
-        currentTemperature = 0f;
+        timeIgnited = 0f;
         lifeRemaining = lifeSpanSeconds;
-        GameObject ashes = fireManager.GetMaterialProperties(GetComponentInParent<Renderer>().sharedMaterial).ashesPrefab;
-        if (ashes != null)
+        startFireRadius = GetComponent<SphereCollider>().radius;
+        try
         {
-            ashesRenderer = Instantiate(ashes, transform.position, transform.rotation, transform).GetComponentInChildren<Renderer>();
-            ashesRenderer.enabled = false;
+            GameObject ashes = fireManager.GetMaterialProperties(GetComponentInParent<Renderer>().sharedMaterial).ashesPrefab;
+            if (ashes != null)
+            {
+                ashesRenderer = Instantiate(ashes, transform.position, transform.rotation, transform).GetComponentInChildren<Renderer>();
+                ashesRenderer.enabled = false;
+            }
         }
+        catch(NullReferenceException e)
+        {
+            Debug.LogException(e);
+        }
+        
     }
 
     private void Update()
@@ -60,10 +77,23 @@ public class FireSystem : MonoBehaviour
         }
         else
         {
-            if(currentTemperature >= igniteTemperature && lifeRemaining > 0)
+            if(beingIgnited)
             {
-                StartFire();
+                if ((timeIgnited += Time.deltaTime) >= igniteTime && lifeRemaining > 0)
+                {
+                    StartFire();
+                }
             }
+        }
+    }
+
+    private void LateUpdate()
+    {
+        beingIgnited = false;
+        if(igniteAtFrameEnd)
+        {
+            StartFire();
+            igniteAtFrameEnd = false;
         }
     }
 
@@ -71,15 +101,24 @@ public class FireSystem : MonoBehaviour
     {
         if (isAlight)
         {
-            if (fireManager.GetIfFlammable(other.GetComponentInParent<Renderer>().sharedMaterial))
+            RaycastHit hit;
+            Physics.Raycast(transform.position, other.transform.position - transform.position, out hit);
+            if(hit.collider != other)
             {
-                if (!other.GetComponentInChildren<FireSystem>())
+                return;
+            }
+            if (other.GetComponentInParent<Renderer>())
+            {
+                if (fireManager.GetIfFlammable(other.GetComponentInParent<Renderer>().sharedMaterial))
                 {
-                    fireManager.AddFireSystem(other.gameObject);
-                }
-                else if (!other.GetComponent<MeshCollider>())
-                {
-                    SpreadTemperature(other.GetComponentInChildren<FireSystem>());
+                    if (!other.GetComponentInChildren<FireSystem>())
+                    {
+                        fireManager.AddFireSystem(other.gameObject);
+                    }
+                    else if (!other.GetComponent<MeshCollider>())
+                    {
+                        BurnOther(other.GetComponentInChildren<FireSystem>());
+                    }
                 }
             }
         }
@@ -93,14 +132,13 @@ public class FireSystem : MonoBehaviour
     private void StartFire()
     {
         isAlight = true;
-        fireLight.enabled = true;
-        gameObject.layer = 9;
+        gameObject.layer = fireManager.fireAlightLayer;
         foreach (ParticleSystem ps in fireParticleSystems)
         {
             ps.Play();
         }
         CountDownLife();
-        GetComponent<SphereCollider>().radius *= 1.5f;
+        GetComponent<SphereCollider>().radius = startFireRadius * 3f;
         AdjustParticleDirection(windDirection);
     }
 
@@ -116,6 +154,10 @@ public class FireSystem : MonoBehaviour
         if (ashesRenderer != null)
         {
             ashesRenderer.enabled = true;
+        }
+        if(breaksOnExtinguish)
+        {
+            Destroy(transform.parent.gameObject);
         }
     }
 
@@ -142,7 +184,7 @@ public class FireSystem : MonoBehaviour
 
     public void Ignite()
     {
-        currentTemperature = igniteTemperature;
+        igniteAtFrameEnd = true;
     }
 
     public bool GetIsAlight()
@@ -150,18 +192,13 @@ public class FireSystem : MonoBehaviour
         return isAlight;
     }
 
-    public void SpreadTemperature(FireSystem other)
+    public void BurnOther(FireSystem other)
     {
-        other.AddTemperature(spreadTemperature);
+        other.SetBeingIgnited();
     }
 
-    public void AddTemperature(float addTemp)
+    public void SetBeingIgnited()
     {
-        currentTemperature += addTemp;
-    }
-
-    public void SetTemperature(float newTemp)
-    {
-        currentTemperature = newTemp;
+        beingIgnited = true;
     }
 }
